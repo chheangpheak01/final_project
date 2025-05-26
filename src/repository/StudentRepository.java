@@ -43,57 +43,80 @@ public class StudentRepository {
                 studentInfo.setAverage(resultSet.getDouble("average"));
                 studentInfoList.add(studentInfo);
             }
+            if(studentInfoList.isEmpty()){
+                System.out.println("No student information found 👈🏾");
+            }
             return studentInfoList;
+        }catch (SQLException e){
+            System.out.println("Database error during trying to Get all Student information 👈🏾" + e.getMessage());
         }catch (Exception e){
             System.out.println("Error during trying to Get all Student information 🤦‍♂️🥹 " + e.getMessage());
         }
         return null;
     }
 
-    public int addStudentInfo(StudentInfo studentInfo){
+    public int addStudentInfo(StudentInfo studentInfo) {
         String sql = """
-                INSERT INTO Student(id,name,age,gender,year,semester,email,phone_number,enrollment_date,current_city,hometown,department,linux,java,python,javascript,reactjs,grade,score,average)
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                """;
-        try(
-                Connection connection = DriverManager.getConnection(
-                        DatabaseConnectionConfig.databaseUrl,
-                        DatabaseConnectionConfig.databaseUserName,
-                        DatabaseConnectionConfig.databasePassword
-                );
-                PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                ){
-            preparedStatement.setInt(1,studentInfo.getId());
-            preparedStatement.setString(2,studentInfo.getName());
-            preparedStatement.setInt(3,studentInfo.getAge());
-            preparedStatement.setString(4,studentInfo.getGender());
-            preparedStatement.setString(5,studentInfo.getYear());
-            preparedStatement.setString(6,studentInfo.getSemester());
-            preparedStatement.setString(7,studentInfo.getEmail());
-            preparedStatement.setString(8,studentInfo.getPhone_number());
-            preparedStatement.setDate(9,studentInfo.getEnrollment_date());
-            preparedStatement.setString(10,studentInfo.getCurrent_city());
-            preparedStatement.setString(11,studentInfo.getHometown());
-            preparedStatement.setString(12,studentInfo.getDepartment());
-            preparedStatement.setInt(13,studentInfo.getLinux());
-            preparedStatement.setInt(14,studentInfo.getJava());
-            preparedStatement.setInt(15,studentInfo.getPython());
-            preparedStatement.setInt(16,studentInfo.getJavascript());
-            preparedStatement.setInt(17,studentInfo.getReactjs());
-            preparedStatement.setString(18,studentInfo.getGrade().toString());
-            preparedStatement.setFloat(19,studentInfo.getScore());
-            preparedStatement.setDouble(20,studentInfo.getAverage());
+            INSERT INTO Student(id,name,age,gender,year,semester,email,phone_number,enrollment_date,current_city,hometown,department,linux,java,python,javascript,reactjs,grade,score,average)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """;
 
-            int rowEffected = preparedStatement.executeUpdate();
-            if(rowEffected > 0){
-                System.out.println("Student information Added successfully 😊🚀");
-            }else{
-                System.out.println("Failed to Add student information 🤦‍♂️🥹");
+        try (
+                Connection connection = DriverManager.getConnection(
+                DatabaseConnectionConfig.databaseUrl,
+                DatabaseConnectionConfig.databaseUserName,
+                DatabaseConnectionConfig.databasePassword)) {
+
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setInt(1, studentInfo.getId());
+                preparedStatement.setString(2, studentInfo.getName());
+                preparedStatement.setInt(3, studentInfo.getAge());
+                preparedStatement.setString(4, studentInfo.getGender());
+                preparedStatement.setString(5, studentInfo.getYear());
+                preparedStatement.setString(6, studentInfo.getSemester());
+                preparedStatement.setString(7, studentInfo.getEmail());
+                preparedStatement.setString(8, studentInfo.getPhone_number());
+                preparedStatement.setDate(9, studentInfo.getEnrollment_date());
+                preparedStatement.setString(10, studentInfo.getCurrent_city());
+                preparedStatement.setString(11, studentInfo.getHometown());
+                preparedStatement.setString(12, studentInfo.getDepartment());
+                preparedStatement.setInt(13, studentInfo.getLinux());
+                preparedStatement.setInt(14, studentInfo.getJava());
+                preparedStatement.setInt(15, studentInfo.getPython());
+                preparedStatement.setInt(16, studentInfo.getJavascript());
+                preparedStatement.setInt(17, studentInfo.getReactjs());
+                preparedStatement.setString(18, studentInfo.getGrade().toString());
+                preparedStatement.setFloat(19, studentInfo.getScore());
+                preparedStatement.setDouble(20, studentInfo.getAverage());
+
+                int rowEffected = preparedStatement.executeUpdate();
+
+                if (rowEffected > 0) {
+                    connection.commit();
+                    System.out.println("Student information Added successfully 😊🚀");
+                } else {
+                    connection.rollback();
+                    System.out.println("Failed to Add student information 🤦‍♂️🥹");
+                }
+                return rowEffected;
+
+            } catch (SQLException e) {
+                connection.rollback();
+                System.out.println("Database error during trying to Add student information 👈🏾 " + e.getMessage());
+                return 0;
+            } catch (Exception e) {
+                connection.rollback();
+                System.out.println("Error during trying to Add student information 🤦‍♂️🥹" + e.getMessage());
+                return 0;
+            } finally {
+                connection.setAutoCommit(true);
             }
-        }catch (Exception e){
-            System.out.println("Error during trying to Add student information 🤦‍♂️🥹" + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Failed to connect to database 👈🏾 " + e.getMessage());
+            return 0;
         }
-        return 0;
     }
 
     public int updateStudentInfo(int id, StudentUpdateDto studentUpdateDto){
@@ -105,64 +128,96 @@ public class StudentRepository {
                 Connection connection = DriverManager.getConnection(
                         DatabaseConnectionConfig.databaseUrl,
                         DatabaseConnectionConfig.databaseUserName,
-                        DatabaseConnectionConfig.databasePassword
-                );
-                PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                ){
-            preparedStatement.setString(1,studentUpdateDto.name());
-            preparedStatement.setInt(2,studentUpdateDto.age());
-            preparedStatement.setString(3,studentUpdateDto.gender());
-            preparedStatement.setString(4,studentUpdateDto.year());
-            preparedStatement.setString(5,studentUpdateDto.semester());
-            preparedStatement.setString(6,studentUpdateDto.email());
-            preparedStatement.setString(7,studentUpdateDto.phone_number());
-            preparedStatement.setDate(8,studentUpdateDto.enrollment_date());
-            preparedStatement.setString(9, studentUpdateDto.current_city());
-            preparedStatement.setString(10,studentUpdateDto.hometown());
-            preparedStatement.setString(11,studentUpdateDto.department());
-            preparedStatement.setInt(12,studentUpdateDto.linux());
-            preparedStatement.setInt(13,studentUpdateDto.java());
-            preparedStatement.setInt(14,studentUpdateDto.python());
-            preparedStatement.setInt(15,studentUpdateDto.javascript());
-            preparedStatement.setInt(16,studentUpdateDto.reactjs());
-            preparedStatement.setString(17,studentUpdateDto.grade().toString());
-            preparedStatement.setFloat(18,studentUpdateDto.score());
-            preparedStatement.setDouble(19,studentUpdateDto.average());
-            preparedStatement.setInt(20,id);
+                        DatabaseConnectionConfig.databasePassword)){
 
-            int rowEffected = preparedStatement.executeUpdate();
-            if(rowEffected > 0){
-                System.out.println("Student Information updated successfully 😊🚀");
-            }else{
-                System.out.println("Failed to update Student Information 🤦‍♂️🥹");
+            connection.setAutoCommit(false);
+
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+                preparedStatement.setString(1,studentUpdateDto.name());
+                preparedStatement.setInt(2,studentUpdateDto.age());
+                preparedStatement.setString(3,studentUpdateDto.gender());
+                preparedStatement.setString(4,studentUpdateDto.year());
+                preparedStatement.setString(5,studentUpdateDto.semester());
+                preparedStatement.setString(6,studentUpdateDto.email());
+                preparedStatement.setString(7,studentUpdateDto.phone_number());
+                preparedStatement.setDate(8,studentUpdateDto.enrollment_date());
+                preparedStatement.setString(9, studentUpdateDto.current_city());
+                preparedStatement.setString(10,studentUpdateDto.hometown());
+                preparedStatement.setString(11,studentUpdateDto.department());
+                preparedStatement.setInt(12,studentUpdateDto.linux());
+                preparedStatement.setInt(13,studentUpdateDto.java());
+                preparedStatement.setInt(14,studentUpdateDto.python());
+                preparedStatement.setInt(15,studentUpdateDto.javascript());
+                preparedStatement.setInt(16,studentUpdateDto.reactjs());
+                preparedStatement.setString(17,studentUpdateDto.grade().toString());
+                preparedStatement.setFloat(18,studentUpdateDto.score());
+                preparedStatement.setDouble(19,studentUpdateDto.average());
+                preparedStatement.setInt(20,id);
+
+                int rowEffected = preparedStatement.executeUpdate();
+
+                if(rowEffected > 0){
+                    connection.commit();
+                    System.out.println("Student Information updated successfully 😊🚀");
+                }else{
+                    connection.rollback();
+                    System.out.println("Failed to update Student Information 🤦‍♂️🥹");
+                }
+            }catch(SQLException e) {
+                connection.rollback();
+                System.out.println("Database error during trying to update student information 👈🏾 " + e.getMessage());
+                return 0;
+            }catch (Exception e){
+                connection.rollback();
+                System.out.println("Error during trying to update student information 🤦‍♂️🥹 " + e.getMessage());
             }
-        }catch (Exception e){
-            System.out.println("Error during trying to Update Student Information 🤦‍♂️🥹" + e.getMessage());
+            finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to connect to database 👈🏾 " + e.getMessage());
+            return 0;
         }
         return 0;
     }
 
-    public int deleteStudentInfo(int id){
-        String sql = """
-                DELETE FROM Student WHERE id = ?
-                """;
-        try(
-                Connection connection = DriverManager.getConnection(
-                        DatabaseConnectionConfig.databaseUrl,
-                        DatabaseConnectionConfig.databaseUserName,
-                        DatabaseConnectionConfig.databasePassword
-                );
-                PreparedStatement preparedStatement = connection.prepareStatement(sql);
-                ){
-            preparedStatement.setInt(1,id);
-            int rowEffected = preparedStatement.executeUpdate();
-            if(rowEffected > 0){
-                System.out.println("Student information Deleted successfully 😊🚀");
-            }else{
-                System.out.println("Failed to Delete Student information 🤦‍♂️🥹");
+    public int deleteStudentInfo(int id) {
+        String sql = "DELETE FROM Student WHERE id = ?";
+
+        try (Connection connection = DriverManager.getConnection(
+                DatabaseConnectionConfig.databaseUrl,
+                DatabaseConnectionConfig.databaseUserName,
+                DatabaseConnectionConfig.databasePassword)) {
+
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setInt(1, id);
+                int rowEffected = preparedStatement.executeUpdate();
+
+                if (rowEffected > 0) {
+                    connection.commit();
+                    System.out.println("Student information Deleted successfully 😊🚀");
+                } else {
+                    connection.rollback();
+                    System.out.println("Failed to Delete Student information 🤦‍♂️🥹");
+                }
+                return rowEffected;
+
+            } catch (SQLException e) {
+                connection.rollback();
+                System.out.println("Database error during trying to delete student information by id 👈🏾" + e.getMessage());
+                return 0;
+            }catch (Exception e){
+                connection.rollback();
+                System.out.println("Error during trying to delete student information by id  " + e.getMessage());
             }
-        }catch (Exception e){
-            System.out.println("Error during trying to Delete Student Information 🤦‍♂️🥹" + e.getMessage());
+            finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to connect to database 👈🏾" + e.getMessage());
+            return 0;
         }
         return 0;
     }
@@ -240,7 +295,12 @@ public class StudentRepository {
                 studentInfo.setAverage(resultSet.getDouble("average"));
                 studentInfoList.add(studentInfo);
             }
+            if(studentInfoList.isEmpty()){
+                System.out.println("No student information found with grade " + grade);
+            }
             return studentInfoList;
+        }catch (SQLException e){
+            System.out.println("Database error during trying to Search Student Information by Grade 👈🏾 " + e.getMessage());
         }catch (Exception e){
             System.out.println("Error during trying to Search Student Information by Grade 🤦‍♂️🥹" + e.getMessage());
         }
@@ -283,7 +343,12 @@ public class StudentRepository {
                 studentInfo.setAverage(resultSet.getDouble("average"));
                 topStudents.add(studentInfo);
             }
+            if(topStudents.isEmpty()){
+                System.out.println("No top student information found 👈🏾");
+            }
             return topStudents;
+        }catch (SQLException e){
+            System.out.println("Database error during trying to get Top Performing Students List 👈🏾 " + e.getMessage());
         }catch (Exception e){
             System.out.println("Error during trying to get Top Performing Students List 🤦‍♂️🥹 " + e.getMessage());
         }
@@ -309,7 +374,12 @@ public class StudentRepository {
                 studentInfo.setAverage(resultSet.getDouble("average"));
                 studentInfoList.add(studentInfo);
             }
+            if(studentInfoList.isEmpty()){
+                System.out.println("No student information average found 👈🏾");
+            }
             return studentInfoList;
+        }catch (SQLException e){
+            System.out.println("Database error during trying to get all Student's Averages List 👈🏾 " + e.getMessage());
         }catch (Exception e){
             System.out.println("Error during trying to get all Student's Averages List 🤦‍♂️🥹 " + e.getMessage());
         }

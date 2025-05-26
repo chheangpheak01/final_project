@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class UserInterface {
+
     private final static StudentRepository studentRepository = new StudentRepository();
     private final static Scanner scanner = new Scanner(System.in);
 
