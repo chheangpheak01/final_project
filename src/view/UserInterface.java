@@ -8,6 +8,7 @@ import org.nocrala.tools.texttablefmt.Table;
 import repository.StudentRepository;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -27,8 +28,111 @@ public class UserInterface {
         System.out.println("[+] 5 -> Search students by grade👨🏾‍💻");
         System.out.println("[+] 6 -> List top-performing students👨🏾‍💻");
         System.out.println("[+] 7 -> Calculate the average score👨🏾‍💻");
-        System.out.println("[+] 8 -> Exit our program 👈🏾");
+        System.out.println("[+] 8 -> Add multiple students into bulk insertion 👨🏾‍💻");
+        System.out.println("[+] 9 -> Exit our program 👈🏾");
         System.out.println("-".repeat(98));
+    }
+
+    private static void processBulkInsertion() {
+        System.out.println("*".repeat(32) + " 🥷🏾💫 Bulk Student Insertion 💫🥷🏾" + "*".repeat(33));
+        System.out.println("Enter student information into bulk type 'done' when finished 👈🏾😊");
+
+        List<StudentInfo> studentsToAdd = new ArrayList<>();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\n--- New Student Entry ---");
+            System.out.print(" => Enter student ID or 'done' to finish : ");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("done")) {
+                break;
+            }
+            try {
+                int id = Integer.parseInt(input);
+                System.out.print(" => Enter the student's name : ");
+                String stuName = scanner.nextLine();
+
+                int stuAge = getPositiveIntInput(scanner, " => Enter the student's age : ");
+
+                System.out.print(" => Enter the student's gender : ");
+                String stuGender = scanner.nextLine();
+                System.out.print(" => Enter the student's year : ");
+                String stuYear = scanner.nextLine();
+                System.out.print(" => Enter the Student's semester : ");
+                String stuSemester = scanner.nextLine();
+
+                String stuEmail;
+                while(true) {
+                    System.out.print(" => Enter the student's email : ");
+                    stuEmail = scanner.nextLine();
+                    if(studentRepository.validatedEmail(stuEmail)) {
+                        break;
+                    } else {
+                        System.out.println("Invalid Student's email, Please try again 👈🏾😊");
+                        System.out.println("for example -> student@domain.com)");
+                    }
+                }
+
+                System.out.print(" => Enter the student's phone number : ");
+                String stuPhone = scanner.nextLine();
+                Date stuEnrollmentDate = Date.valueOf(LocalDate.now());
+                System.out.print(" => Enter the student's current city : ");
+                String stuCurrentCity = scanner.nextLine();
+                System.out.print(" => Enter the student's hometown : ");
+                String stuHometown = scanner.nextLine();
+                System.out.print(" => Enter the student's department : ");
+                String stuDepartment = scanner.nextLine();
+
+                int stuLinuxScore = getPositiveIntInput(scanner, " => Enter the student's linux score : ");
+                int stuJavaScore = getPositiveIntInput(scanner, " => Enter the student's java score : ");
+                int stuPythonScore = getPositiveIntInput(scanner, " => Enter the student's python score : ");
+                int stuJavascriptScore = getPositiveIntInput(scanner, " => Enter the student's javascript score : ");
+                int stuReactjsScore = getPositiveIntInput(scanner, " => Enter the student's reactjs score : ");
+
+                char stuGrade = studentRepository.findStudentGrade(stuLinuxScore, stuJavaScore, stuPythonScore, stuJavascriptScore, stuReactjsScore);
+                float stuScore = studentRepository.findStudentScore(new int[] {stuLinuxScore, stuJavaScore, stuPythonScore, stuJavascriptScore, stuReactjsScore});
+                double stuAverage = studentRepository.findStudentAverage(new int[] {stuLinuxScore, stuJavaScore, stuPythonScore, stuJavascriptScore, stuReactjsScore});
+
+                StudentInfo studentInfo = new StudentInfo(id, stuName, stuAge, stuGender, stuYear, stuSemester, stuEmail, stuPhone, stuEnrollmentDate, stuCurrentCity, stuHometown, stuDepartment, stuLinuxScore, stuJavaScore, stuPythonScore, stuJavascriptScore, stuReactjsScore, stuGrade, stuScore, stuAverage);
+
+                studentsToAdd.add(studentInfo);
+                System.out.println("Student added to batch Current batch size : " + studentsToAdd.size());
+
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input Please enter a valid number or 'done' to finish");
+            }
+        }
+
+        if (!studentsToAdd.isEmpty()) {
+            System.out.println("\nProcessing batch insertion of " + studentsToAdd.size() + " students...");
+            int[] results = studentRepository.addStudentsInToBatch(studentsToAdd);
+            int successCount = 0;
+            for (int result : results) {
+                if (result >= 0) {
+                    successCount++;
+                }
+            }
+            System.out.println("Successfully inserted " + successCount + " out of " + studentsToAdd.size() + " students 😊🚀");
+        } else {
+            System.out.println("No students to insert Batch insertion canceled 🤦‍♂️🥹");
+        }
+    }
+
+    private static int getPositiveIntInput(Scanner scanner, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                int value = Integer.parseInt(scanner.nextLine());
+                if (value > 0) {
+                    return value;
+                } else {
+                    System.out.println("Value must be positive number 👈🏾😊");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input, Please try again");
+            }
+        }
     }
 
     public static void process(int opt){
@@ -554,6 +658,9 @@ public class UserInterface {
                 }
             }
             case 8 -> {
+                processBulkInsertion();
+            }
+            case 9 -> {
                 System.out.println("Student Management System is closed....");
                 System.exit(0);
             }

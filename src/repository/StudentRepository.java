@@ -7,6 +7,70 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StudentRepository {
+
+    public int[] addStudentsInToBatch(List<StudentInfo> student) {
+        String sql = """
+        INSERT INTO Student(id,name,age,gender,year,semester,email,phone_number,enrollment_date,current_city,hometown,department,linux,java,python,javascript,reactjs,grade,score,average)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """;
+        try (
+                Connection connection = DriverManager.getConnection(
+                        DatabaseConnectionConfig.databaseUrl,
+                        DatabaseConnectionConfig.databaseUserName,
+                        DatabaseConnectionConfig.databasePassword)) {
+
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                for (StudentInfo studentInfo : student) {
+                    preparedStatement.setInt(1, studentInfo.getId());
+                    preparedStatement.setString(2, studentInfo.getName());
+                    preparedStatement.setInt(3, studentInfo.getAge());
+                    preparedStatement.setString(4, studentInfo.getGender());
+                    preparedStatement.setString(5, studentInfo.getYear());
+                    preparedStatement.setString(6, studentInfo.getSemester());
+                    preparedStatement.setString(7, studentInfo.getEmail());
+                    preparedStatement.setString(8, studentInfo.getPhone_number());
+                    preparedStatement.setDate(9, studentInfo.getEnrollment_date());
+                    preparedStatement.setString(10, studentInfo.getCurrent_city());
+                    preparedStatement.setString(11, studentInfo.getHometown());
+                    preparedStatement.setString(12, studentInfo.getDepartment());
+                    preparedStatement.setInt(13, studentInfo.getLinux());
+                    preparedStatement.setInt(14, studentInfo.getJava());
+                    preparedStatement.setInt(15, studentInfo.getPython());
+                    preparedStatement.setInt(16, studentInfo.getJavascript());
+                    preparedStatement.setInt(17, studentInfo.getReactjs());
+                    preparedStatement.setString(18, studentInfo.getGrade().toString());
+                    preparedStatement.setFloat(19, studentInfo.getScore());
+                    preparedStatement.setDouble(20, studentInfo.getAverage());
+
+                    preparedStatement.addBatch();
+                }
+
+                int[] batchResults = preparedStatement.executeBatch();
+                connection.commit();
+
+                System.out.println("Batch insert completed successfully -> Inserted " +
+                        student.size() + " students 😊🚀");
+                return batchResults;
+
+            } catch (SQLException e) {
+                connection.rollback();
+                System.out.println("Database error during batch insert of students 👈🏾 " + e.getMessage());
+                return new int[0];
+            } catch (Exception e) {
+                connection.rollback();
+                System.out.println("Error during batch insert of students 🤦‍♂️🥹 " + e.getMessage());
+                return new int[0];
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to connect to database during batch insert 👈🏾 " + e.getMessage());
+            return new int[0];
+        }
+    }
+
     public List<StudentInfo> getAllStudentInfo(){
         String sql = "SELECT * FROM Student";
         try(
